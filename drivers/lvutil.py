@@ -397,8 +397,8 @@ def setActiveVG(path, active):
     cmd = [CMD_VGCHANGE, "-a" + val, "--master", path]
     text = util.pread2(cmd)
 
-def create(name, size, vgname, tag = None, activate = True,
-           size_in_percetage = None, config_array = None):
+def create(name, size, vgname, tag=None, activate=True,
+           size_in_percetage=None, config_array=None):
     CONFIG_TAG = "--config"
     if size_in_percetage:
         cmd = [CMD_LVCREATE, "-n", name, "-l", size_in_percetage, vgname]
