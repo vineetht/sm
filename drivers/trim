@@ -27,11 +27,11 @@ import lvhdutil
 import vhdutil
 import lvutil
 
-LV_NAME = "to_trim"
-def _vg_by_uuid(sr_uuid):
+TRIM_LV_TAG = "_trim_lv"
+def _vg_by_sr_uuid(sr_uuid):
     return lvhdutil.VG_PREFIX + sr_uuid
 
-def _vgpath_by_name(vg_name, lv_name):
+def _lvpath_by_vg_lv_name(vg_name, lv_name):
     return os.path.join(lvhdutil.VG_LOCATION, vg_name, lv_name)
 
 def do_trim(session, args):
@@ -40,15 +40,22 @@ def do_trim(session, args):
     sr_uuid = args["sr_uuid"]
 
     # Lock SR, get vg empty space details
-    vg_name = _vg_by_uuid(sr_uuid)
     lock = Lock(vhdutil.LOCK_TYPE_SR, sr_uuid)
     if lock.acquireNoblock():
         try:
-            lv_name = sr_uuid + LV_NAME
+            vg_name = _vg_by_sr_uuid(sr_uuid)
+            lv_name = sr_uuid + TRIM_LV_TAG
+            lv_path = _lvpath_by_vg_lv_name(vg_name, lv_name)
+
+            # Clean trim LV in case the previous trim attemp failed
+            if lvutil.exists(lv_path):
+                lvutil.remove(lv_path)
+
+            # Perform a lvcreate and lvremove to trigger trim on the array
             lvutil.create(lv_name, 0, vg_name, activate=True,
                           size_in_percetage="100%F",
                           config_array=["issue_discards=1"])
-            lvutil.remove(_vgpath_by_name(vg_name, lv_name))
+            lvutil.remove(lv_path)
             util.SMlog("Trim on SR: %s complete. " % sr_uuid)
             return str(True)
         finally:

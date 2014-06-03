@@ -442,6 +442,15 @@ def setReadonly(path, readonly):
     cmd = [CMD_LVCHANGE, path, "-p", val]
     ret = util.pread(cmd)
 
+def exists(path):
+    cmd = [CMD_LVS, "--noheadings", path]
+    try:
+        ret = util.pread2(cmd)
+        return True
+    except util.CommandException, e:
+        util.SMlog("Ignoring exception for LV check: %s !" % path)
+        return False
+
 #def getSize(path):
 #    return _getLVsize(path)
 #    #cmd = [CMD_LVS, "--noheadings", "--units", "B", path]
