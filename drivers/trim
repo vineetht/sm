@@ -53,9 +53,8 @@ def do_trim(session, args):
 
             # Perform a lvcreate and lvremove to trigger trim on the array
             lvutil.create(lv_name, 0, vg_name, activate=True,
-                          size_in_percetage="100%F",
-                          config_array=["issue_discards=1"])
-            lvutil.remove(lv_path)
+                          size_in_percetage="100%F")
+            lvutil.remove(lv_path,  config_array=["issue_discards=1"])
             util.SMlog("Trim on SR: %s complete. " % sr_uuid)
             return str(True)
         finally:
