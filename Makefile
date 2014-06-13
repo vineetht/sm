@@ -113,7 +113,7 @@ install:
 	install -m 755 drivers/tapdisk-pause $(SM_STAGING)$(PLUGIN_SCRIPT_DEST)
 	install -m 755 drivers/vss_control $(SM_STAGING)$(PLUGIN_SCRIPT_DEST)
 	install -m 755 drivers/intellicache-clean $(SM_STAGING)$(PLUGIN_SCRIPT_DEST)
-	install -m 755 drivers/trim $(SM_STAGING)$(PLUGIN_SCRIPT_DEST)
+	install -m 755 drivers/trim.py $(SM_STAGING)$(PLUGIN_SCRIPT_DEST)/trim
 	ln -sf $(PLUGIN_SCRIPT_DEST)vss_control $(SM_STAGING)$(SM_DEST)
 	install -m 755 drivers/iscsilib.py $(SM_STAGING)$(SM_DEST)
 	mkdir -p $(SM_STAGING)$(LIBEXEC)
