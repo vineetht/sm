@@ -2,27 +2,25 @@
 #
 # Copyright (C) Citrix Systems Inc.
 #
-# This program is free software; you can redistribute it and/or modify 
-# it under the terms of the GNU Lesser General Public License as published 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published
 # by the Free Software Foundation; version 2.1 only.
 #
-# This program is distributed in the hope that it will be useful, 
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
-# A plugin for enabling trim on LVM based SRs to free up storage space 
+# A plugin for enabling trim on LVM based SRs to free up storage space
 # in Storage arrays.
 
 import sys
 import os
 import time
-import XenAPIPlugin
-sys.path.append("/opt/xensource/sm/")
 import util
 from lock import Lock
 import lvhdutil
@@ -68,7 +66,7 @@ def do_trim(session, args):
         if got_lock:
             break
         time.sleep(LOCK_RETRY_INTERVAL)
-    
+
     if got_lock:
         try:
             vg_name = _vg_by_sr_uuid(sr_uuid)
@@ -93,6 +91,3 @@ def do_trim(session, args):
         err_msg = {'errmsg': 'SRUnavailable',
                    'opterr': 'Unable to get SR lock [%s]' % sr_uuid}
         return to_xml(err_msg)
-
-if __name__ == "__main__":
-    XenAPIPlugin.dispatch({"do_trim": do_trim})
