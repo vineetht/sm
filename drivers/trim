@@ -20,6 +20,7 @@
 
 import sys
 import os
+import time
 import XenAPIPlugin
 sys.path.append("/opt/xensource/sm/")
 import util
@@ -27,22 +28,48 @@ from lock import Lock
 import lvhdutil
 import vhdutil
 import lvutil
+import xs_errors
+import xmlrpclib
 
 TRIM_LV_TAG = "_trim_lv"
+TRIM_CAP = "SR_TRIM"
+LOCK_RETRY_ATTEMPTS = 3
+LOCK_RETRY_INTERVAL = 1
+
 def _vg_by_sr_uuid(sr_uuid):
     return lvhdutil.VG_PREFIX + sr_uuid
 
 def _lvpath_by_vg_lv_name(vg_name, lv_name):
     return os.path.join(lvhdutil.VG_LOCATION, vg_name, lv_name)
 
+def to_xml(d):
+    s = '<?xml version="1.0"?>\n <trim_response>\n'
+    for k, v in d.iteritems():
+        s += '  < %s="%s"' % (k, xmlrpclib.escape(v)) + '>\n'
+    s += ' </trim_response>\n'
+    return s
+
 def do_trim(session, args):
     """Attempt to trim the given LVHDSR"""
     util.SMlog("do_trim: %s" % args)
     sr_uuid = args["sr_uuid"]
 
+    if TRIM_CAP not in util.sr_get_capability(sr_uuid):
+        util.SMlog("Trim command ignored on unsupported SR %s" % sr_uuid)
+        err_msg = {'errmsg': 'UnsupportedSRForTrim',
+                   'opterr': 'Trim on [%s] not supported' % sr_uuid}
+        return to_xml(err_msg)
+
     # Lock SR, get vg empty space details
     lock = Lock(vhdutil.LOCK_TYPE_SR, sr_uuid)
-    if lock.acquireNoblock():
+    got_lock = False
+    for i in range(LOCK_RETRY_ATTEMPTS):
+        got_lock = lock.acquireNoblock()
+        if got_lock:
+            break
+        time.sleep(LOCK_RETRY_INTERVAL)
+    
+    if got_lock:
         try:
             vg_name = _vg_by_sr_uuid(sr_uuid)
             lv_name = sr_uuid + TRIM_LV_TAG
@@ -63,8 +90,9 @@ def do_trim(session, args):
     else:
         util.SMlog("Could not complete Trim on %s, Lock unavailable !" \
                    % sr_uuid)
-        return str(False)
-
+        err_msg = {'errmsg': 'SRUnavailable',
+                   'opterr': 'Unable to get SR lock [%s]' % sr_uuid}
+        return to_xml(err_msg)
 
 if __name__ == "__main__":
     XenAPIPlugin.dispatch({"do_trim": do_trim})
