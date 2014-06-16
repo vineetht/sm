@@ -23,7 +23,7 @@ import sys
 import os
 import time
 import util
-from lock import Lock
+import lock
 import lvhdutil
 import vhdutil
 import lvutil
@@ -76,10 +76,10 @@ def do_trim(session, args):
         return to_xml(err_msg)
 
     # Lock SR, get vg empty space details
-    lock = Lock(vhdutil.LOCK_TYPE_SR, sr_uuid)
+    sr_lock = lock.Lock(vhdutil.LOCK_TYPE_SR, sr_uuid)
     got_lock = False
     for i in range(LOCK_RETRY_ATTEMPTS):
-        got_lock = lock.acquireNoblock()
+        got_lock = sr_lock.acquireNoblock()
         if got_lock:
             break
         time.sleep(LOCK_RETRY_INTERVAL)
@@ -99,9 +99,17 @@ def do_trim(session, args):
                           size_in_percentage="100%F")
             lvutil.remove(lv_path,  config_param="issue_discards=1")
             util.SMlog("Trim on SR: %s complete. " % sr_uuid)
-            return str(True)
-        finally:
-            lock.release()
+            result = str(True)
+        except:
+            err_msg = {
+                'errmsg': 'UnknownTrimException',
+                'opterr': 'Unknown Exception: trim failed on SR [%s]'
+                % sr_uuid
+            }
+            result = to_xml(err_msg)
+
+        sr_lock.release()
+        return result
     else:
         util.SMlog("Could not complete Trim on %s, Lock unavailable !" \
                    % sr_uuid)
