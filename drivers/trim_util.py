@@ -34,6 +34,9 @@ TRIM_LV_TAG = "_trim_lv"
 TRIM_CAP = "SR_TRIM"
 LOCK_RETRY_ATTEMPTS = 3
 LOCK_RETRY_INTERVAL = 1
+ERROR_CODE_KEY = "errcode"
+ERROR_MSG_KEY = "errmsg"
+
 
 def _vg_by_sr_uuid(sr_uuid):
     return lvhdutil.VG_PREFIX + sr_uuid
@@ -47,7 +50,7 @@ def to_xml(d):
     trim_response = dom.createElement("trim_response")
     dom.appendChild(trim_response)
 
-    for key, value in d.iteritems():
+    for key, value in sorted(d.items()):
         key_value_element = dom.createElement("key_value_pair")
         trim_response.appendChild(key_value_element)
 
@@ -71,8 +74,8 @@ def do_trim(session, args):
 
     if TRIM_CAP not in util.sr_get_capability(sr_uuid):
         util.SMlog("Trim command ignored on unsupported SR %s" % sr_uuid)
-        err_msg = {'errmsg': 'UnsupportedSRForTrim',
-                   'opterr': 'Trim on [%s] not supported' % sr_uuid}
+        err_msg = {ERROR_CODE_KEY: 'UnsupportedSRForTrim',
+                   ERROR_MSG_KEY: 'Trim on [%s] not supported' % sr_uuid}
         return to_xml(err_msg)
 
     # Lock SR, get vg empty space details
@@ -102,8 +105,8 @@ def do_trim(session, args):
             result = str(True)
         except:
             err_msg = {
-                'errmsg': 'UnknownTrimException',
-                'opterr': 'Unknown Exception: trim failed on SR [%s]'
+                ERROR_CODE_KEY: 'UnknownTrimException',
+                ERROR_MSG_KEY: 'Unknown Exception: trim failed on SR [%s]'
                 % sr_uuid
             }
             result = to_xml(err_msg)
@@ -113,6 +116,6 @@ def do_trim(session, args):
     else:
         util.SMlog("Could not complete Trim on %s, Lock unavailable !" \
                    % sr_uuid)
-        err_msg = {'errmsg': 'SRUnavailable',
-                   'opterr': 'Unable to get SR lock [%s]' % sr_uuid}
+        err_msg = {ERROR_CODE_KEY: 'SRUnavailable',
+                   ERROR_MSG_KEY: 'Unable to get SR lock [%s]' % sr_uuid}
         return to_xml(err_msg)

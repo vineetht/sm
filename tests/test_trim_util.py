@@ -37,12 +37,12 @@ class TestTrimUtil(unittest.TestCase, testlib.XmlMixIn):
         <?xml version="1.0" ?>
         <trim_response>
             <key_value_pair>
-                <key>opterr</key>
-                <value>Trim on [some-uuid] not supported</value>
+                <key>errcode</key>
+                <value>UnsupportedSRForTrim</value>
             </key_value_pair>
             <key_value_pair>
                 <key>errmsg</key>
-                <value>UnsupportedSRForTrim</value>
+                <value>Trim on [some-uuid] not supported</value>
             </key_value_pair>
         </trim_response>
         """, result)
@@ -66,12 +66,12 @@ class TestTrimUtil(unittest.TestCase, testlib.XmlMixIn):
         <?xml version="1.0" ?>
         <trim_response>
             <key_value_pair>
-                <key>opterr</key>
-                <value>Unable to get SR lock [some-uuid]</value>
+                <key>errcode</key>
+                <value>SRUnavailable</value>
             </key_value_pair>
             <key_value_pair>
                 <key>errmsg</key>
-                <value>SRUnavailable</value>
+                <value>Unable to get SR lock [some-uuid]</value>
             </key_value_pair>
         </trim_response>
         """, result)
@@ -220,12 +220,12 @@ class TestTrimUtil(unittest.TestCase, testlib.XmlMixIn):
         <?xml version="1.0" ?>
         <trim_response>
             <key_value_pair>
-                <key>opterr</key>
-                <value>Unknown Exception: trim failed on SR [some-uuid]</value>
+                <key>errcode</key>
+                <value>UnknownTrimException</value>
             </key_value_pair>
             <key_value_pair>
                 <key>errmsg</key>
-                <value>UnknownTrimException</value>
+                <value>Unknown Exception: trim failed on SR [some-uuid]</value>
             </key_value_pair>
         </trim_response>
         """, result)
