@@ -18,6 +18,7 @@
 # A plugin for enabling trim on LVM based SRs to free up storage space
 # in Storage arrays.
 
+import xml
 import sys
 import os
 import time
@@ -41,11 +42,27 @@ def _lvpath_by_vg_lv_name(vg_name, lv_name):
     return os.path.join(lvhdutil.VG_LOCATION, vg_name, lv_name)
 
 def to_xml(d):
-    s = '<?xml version="1.0"?>\n <trim_response>\n'
-    for k, v in d.iteritems():
-        s += '  < %s="%s"' % (k, xmlrpclib.escape(v)) + '>\n'
-    s += ' </trim_response>\n'
-    return s
+
+    dom = xml.dom.minidom.Document()
+    trim_response = dom.createElement("trim_response")
+    dom.appendChild(trim_response)
+
+    for key, value in d.iteritems():
+        key_value_element = dom.createElement("key_value_pair")
+        trim_response.appendChild(key_value_element)
+
+        key_element = dom.createElement("key")
+        key_text_node = dom.createTextNode(key)
+        key_element.appendChild(key_text_node)
+        key_value_element.appendChild(key_element)
+
+        value_element = dom.createElement("value")
+        value_text_mode = dom.createTextNode(value)
+        value_element.appendChild(value_text_mode)
+        key_value_element.appendChild(value_element)
+
+
+    return dom.toxml()
 
 def do_trim(session, args):
     """Attempt to trim the given LVHDSR"""
