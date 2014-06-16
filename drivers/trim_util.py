@@ -99,9 +99,17 @@ def do_trim(session, args):
                           size_in_percentage="100%F")
             lvutil.remove(lv_path,  config_param="issue_discards=1")
             util.SMlog("Trim on SR: %s complete. " % sr_uuid)
-            return str(True)
-        finally:
-            sr_lock.release()
+            result = str(True)
+        except:
+            err_msg = {
+                'errmsg': 'UnknownTrimException',
+                'opterr': 'Unknown Exception: trim failed on SR [%s]'
+                % sr_uuid
+            }
+            result = to_xml(err_msg)
+
+        sr_lock.release()
+        return result
     else:
         util.SMlog("Could not complete Trim on %s, Lock unavailable !" \
                    % sr_uuid)
